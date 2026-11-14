@@ -2,6 +2,59 @@
 #include <stdio.h>
 #include "Error.h"
 
+/*
+
+The FIR decimators specialized at compile time
+(dsp/filtering_functions_ct.h) are tested with the same patterns and the
+same checks as arm_fir_decimate_f64.
+A function is instantiated for each configuration of the patterns and it
+is selected at run-time from the configuration of the instance.
+
+*/
+
+#if defined(ARM_MATH_CT_CHECK) && !defined(ARM_CT_ASSERT)
+/* A failed run-time check of the CT functions is a test failure
+   (assert() is removed by NDEBUG) */
+#define ARM_CT_ASSERT(COND) ASSERT_TRUE(COND)
+#endif
+
+#include "dsp/filtering_functions_ct_impl.h"
+
+#define FILTER_CT_KEY(NUMTAPS, FACTOR) ((((uint32_t)(NUMTAPS)) << 8) | ((uint32_t)(FACTOR)))
+
+/* (numTaps, M) of the decimator patterns (PatternGeneration/Decimate.py) */
+#define DECIM_CT_CONFIGS(X) \
+  X(2,1) X(2,2) X(2,4) X(2,8) X(3,1) X(3,2) X(3,4) X(3,8) \
+  X(4,1) X(4,2) X(4,4) X(4,8) X(5,1) X(5,2) X(5,4) X(5,8) \
+  X(6,1) X(6,2) X(6,4) X(6,8)
+
+#define DECIM_CT_DEFINE(NT, M)                \
+  ARM_FIR_DECIMATE_CT_DECLARE(f64, NT, M) \
+  ARM_FIR_DECIMATE_CT_DEFINE(f64, NT, M)
+
+DECIM_CT_CONFIGS(DECIM_CT_DEFINE)
+
+static void fir_decimate_ct_f64(const arm_fir_decimate_instance_f64 *S,
+                                const float64_t *pSrc,
+                                float64_t *pDst,
+                                uint32_t blockSize)
+{
+    switch (FILTER_CT_KEY(S->numTaps, S->M))
+    {
+#define DECIM_CT_CASE(NT, M)                                                   \
+        case FILTER_CT_KEY(NT, M):                                             \
+          ARM_FIR_DECIMATE_CT_FUNC(f64, NT, M)(S, pSrc, pDst, blockSize); \
+        break;
+
+        DECIM_CT_CONFIGS(DECIM_CT_CASE)
+
+        default:
+          /* No function specialized for this configuration */
+          ASSERT_TRUE(false);
+        break;
+    }
+}
+
 #define SNR_THRESHOLD 120
 
 /* 
@@ -13,7 +66,8 @@ a double precision computation.
 #define REL_ERROR (8.0e-4)
 
 
-    void DECIMF64::test_fir_decimate_f64()
+    /* Test of arm_fir_decimate_f64 or of a decimator specialized at compile time */
+    void DECIMF64::run_fir_decimate(decimate_t decimate)
     {
         int nbTests;
         int nb;
@@ -47,7 +101,7 @@ a double precision computation.
 
             ASSERT_TRUE(this->status == ARM_MATH_SUCCESS);
 
-            arm_fir_decimate_f64(
+            decimate(
                  &(this->S),
                  pSrc,
                  pDst,
@@ -126,6 +180,16 @@ a double precision computation.
     } 
 
 #endif
+    void DECIMF64::test_fir_decimate_f64()
+    {
+        run_fir_decimate(arm_fir_decimate_f64);
+    }
+
+    void DECIMF64::test_fir_decimate_ct_f64()
+    {
+        run_fir_decimate(fir_decimate_ct_f64);
+    }
+
     void DECIMF64::setUp(Testing::testID_t id,std::vector<Testing::param_t>& params,Client::PatternMgr *mgr)
     {
       
@@ -134,6 +198,7 @@ a double precision computation.
        switch(id)
        {
         case DECIMF64::TEST_FIR_DECIMATE_F64_1:
+        case DECIMF64::TEST_FIR_DECIMATE_CT_F64_2:
           config.reload(DECIMF64::CONFIGSDECIMF64_ID,mgr);
          
           input.reload(DECIMF64::INPUT1_F64_ID,mgr);

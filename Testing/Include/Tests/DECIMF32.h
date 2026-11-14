@@ -11,6 +11,14 @@ class DECIMF32:public Client::Suite
             virtual void tearDown(Testing::testID_t,Client::PatternMgr *mgr);
         private:
             #include "DECIMF32_decl.h"
+
+            /* Tested function : arm_fir_decimate_f32 or a decimator specialized at compile time */
+            typedef void (*decimate_t)(const arm_fir_decimate_instance_f32 *, const float32_t *, float32_t *, uint32_t);
+            void run_fir_decimate(decimate_t decimate);
+
+            /* Tested function : arm_fir_interpolate_f32 or an interpolator specialized at compile time */
+            typedef void (*interpolate_t)(const arm_fir_interpolate_instance_f32 *, const float32_t *, float32_t *, uint32_t);
+            void run_fir_interpolate(interpolate_t interpolate);
             
             Client::Pattern<float32_t> input;
             Client::Pattern<float32_t> coefs;

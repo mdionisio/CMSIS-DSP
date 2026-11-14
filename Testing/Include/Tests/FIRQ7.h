@@ -11,6 +11,10 @@ class FIRQ7:public Client::Suite
             virtual void tearDown(Testing::testID_t,Client::PatternMgr *mgr);
         private:
             #include "FIRQ7_decl.h"
+
+            /* Tested function : arm_fir_q7 or a FIR specialized at compile time */
+            typedef void (*fir_t)(const arm_fir_instance_q7 *, const q7_t *, q7_t *, uint32_t);
+            void run_fir(fir_t fir);
             
             Client::Pattern<q7_t> coefs;
             Client::Pattern<q7_t> inputs;

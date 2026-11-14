@@ -11,6 +11,10 @@ class DECIMF64:public Client::Suite
             virtual void tearDown(Testing::testID_t,Client::PatternMgr *mgr);
         private:
             #include "DECIMF64_decl.h"
+
+            /* Tested function : arm_fir_decimate_f64 or a decimator specialized at compile time */
+            typedef void (*decimate_t)(const arm_fir_decimate_instance_f64 *, const float64_t *, float64_t *, uint32_t);
+            void run_fir_decimate(decimate_t decimate);
             
             Client::Pattern<float64_t> input;
             Client::Pattern<float64_t> coefs;
