@@ -2,6 +2,53 @@
 #include <stdio.h>
 #include "Error.h"
 
+/*
+
+The FIR filters specialized at compile time (dsp/filtering_functions_ct.h)
+are tested with the same patterns and the same checks as arm_fir_q7.
+A function is instantiated for each number of taps of the patterns and
+it is selected at run-time from the number of taps of the instance.
+
+*/
+
+#if defined(ARM_MATH_CT_CHECK) && !defined(ARM_CT_ASSERT)
+/* A failed run-time check of the CT functions is a test failure
+   (assert() is removed by NDEBUG) */
+#define ARM_CT_ASSERT(COND) ASSERT_TRUE(COND)
+#endif
+
+#include "dsp/filtering_functions_ct_impl.h"
+
+/* Number of taps of the patterns (PatternGeneration/FIR.py) */
+#define FIR_CT_TAPS(X) \
+  X(1) X(2) X(3) X(4) X(5) X(6) X(7) X(8) \
+  X(11) X(25)
+
+#define FIR_CT_DEFINE(NT)       \
+  ARM_FIR_CT_DECLARE(q7, NT) \
+  ARM_FIR_CT_DEFINE(q7, NT)
+
+FIR_CT_TAPS(FIR_CT_DEFINE)
+
+static void fir_ct_q7(const arm_fir_instance_q7 *S,
+                      const q7_t *pSrc,
+                      q7_t *pDst,
+                      uint32_t blockSize)
+{
+    switch (S->numTaps)
+    {
+#define FIR_CT_CASE(NT) \
+        case NT: ARM_FIR_CT_FUNC(q7, NT)(S, pSrc, pDst, blockSize); break;
+
+        FIR_CT_TAPS(FIR_CT_CASE)
+
+        default:
+          /* No function specialized for this number of taps */
+          ASSERT_TRUE(false);
+        break;
+    }
+}
+
 #define SNR_THRESHOLD 10
 
 #define ABS_ERROR_Q7 ((q7_t)2)
@@ -21,7 +68,8 @@ static void checkInnerTail(q7_t *b)
 // Coef must be padded to a multiple of 16
 #define FIRCOEFPADDING 4
 
-    void FIRQ7::test_fir_q7()
+    /* Test of arm_fir_q7 or of a FIR specialized at compile time */
+    void FIRQ7::run_fir(fir_t fir)
     {
         
 
@@ -101,12 +149,12 @@ static void checkInnerTail(q7_t *b)
            the state management of the fir is working.)
 
            */
-           arm_fir_q7(&this->S,inputp,outp,blockSize);
+           fir(&this->S,inputp,outp,blockSize);
            outp += blockSize;
            checkInnerTail(outp);
 
            inputp += blockSize;
-           arm_fir_q7(&this->S,inputp,outp,blockSize);
+           fir(&this->S,inputp,outp,blockSize);
            outp += blockSize;
            checkInnerTail(outp);
 
@@ -124,6 +172,16 @@ static void checkInnerTail(q7_t *b)
     } 
 
  
+    void FIRQ7::test_fir_q7()
+    {
+        run_fir(arm_fir_q7);
+    }
+
+    void FIRQ7::test_fir_ct_q7()
+    {
+        run_fir(fir_ct_q7);
+    }
+
     void FIRQ7::setUp(Testing::testID_t id,std::vector<Testing::param_t>& params,Client::PatternMgr *mgr)
     {
       

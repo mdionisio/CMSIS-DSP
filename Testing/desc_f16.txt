@@ -738,6 +738,7 @@ group Root {
 
                 Functions {
                   arm_fir_f16:test_fir_f16
+                  arm_fir_n(numTaps)_f16:test_fir_ct_f16
                 }
 
              }

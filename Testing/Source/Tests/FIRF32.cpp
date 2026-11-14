@@ -2,6 +2,53 @@
 #include <stdio.h>
 #include "Error.h"
 
+/*
+
+The FIR filters specialized at compile time (dsp/filtering_functions_ct.h)
+are tested with the same patterns and the same checks as arm_fir_f32.
+A function is instantiated for each number of taps of the patterns and
+it is selected at run-time from the number of taps of the instance.
+
+*/
+
+#if defined(ARM_MATH_CT_CHECK) && !defined(ARM_CT_ASSERT)
+/* A failed run-time check of the CT functions is a test failure
+   (assert() is removed by NDEBUG) */
+#define ARM_CT_ASSERT(COND) ASSERT_TRUE(COND)
+#endif
+
+#include "dsp/filtering_functions_ct_impl.h"
+
+/* Number of taps of the patterns (PatternGeneration/FIR.py) */
+#define FIR_CT_TAPS(X) \
+  X(1) X(2) X(3) X(4) X(5) X(6) X(7) X(8) \
+  X(11) X(16) X(23) X(25)
+
+#define FIR_CT_DEFINE(NT)       \
+  ARM_FIR_CT_DECLARE(f32, NT) \
+  ARM_FIR_CT_DEFINE(f32, NT)
+
+FIR_CT_TAPS(FIR_CT_DEFINE)
+
+static void fir_ct_f32(const arm_fir_instance_f32 *S,
+                       const float32_t *pSrc,
+                       float32_t *pDst,
+                       uint32_t blockSize)
+{
+    switch (S->numTaps)
+    {
+#define FIR_CT_CASE(NT) \
+        case NT: ARM_FIR_CT_FUNC(f32, NT)(S, pSrc, pDst, blockSize); break;
+
+        FIR_CT_TAPS(FIR_CT_CASE)
+
+        default:
+          /* No function specialized for this number of taps */
+          ASSERT_TRUE(false);
+        break;
+    }
+}
+
 #define SNR_THRESHOLD 120
 
 /* 
@@ -27,7 +74,8 @@ static void checkInnerTail(float32_t *b)
 // Coef must be padded to a multiple of 4
 #define FIRCOEFPADDING 2
 
-    void FIRF32::test_fir_f32()
+    /* Test of arm_fir_f32 or of a FIR specialized at compile time */
+    void FIRF32::run_fir(fir_t fir)
     {
         
 
@@ -113,13 +161,13 @@ static void checkInnerTail(float32_t *b)
            */
 
            
-           arm_fir_f32(&this->S,inputp,outp,blockSize);
+           fir(&this->S,inputp,outp,blockSize);
            
            outp += blockSize;
            checkInnerTail(outp);
            
            inputp += blockSize;
-           arm_fir_f32(&this->S,inputp,outp,blockSize);
+           fir(&this->S,inputp,outp,blockSize);
            outp += blockSize;
            checkInnerTail(outp);
 
@@ -138,6 +186,16 @@ static void checkInnerTail(float32_t *b)
     } 
 
  
+    void FIRF32::test_fir_f32()
+    {
+        run_fir(arm_fir_f32);
+    }
+
+    void FIRF32::test_fir_ct_f32()
+    {
+        run_fir(fir_ct_f32);
+    }
+
     void FIRF32::setUp(Testing::testID_t id,std::vector<Testing::param_t>& params,Client::PatternMgr *mgr)
     {
       

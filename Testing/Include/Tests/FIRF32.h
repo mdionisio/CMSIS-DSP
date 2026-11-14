@@ -11,6 +11,10 @@ class FIRF32:public Client::Suite
             virtual void tearDown(Testing::testID_t,Client::PatternMgr *mgr);
         private:
             #include "FIRF32_decl.h"
+
+            /* Tested function : arm_fir_f32 or a FIR specialized at compile time */
+            typedef void (*fir_t)(const arm_fir_instance_f32 *, const float32_t *, float32_t *, uint32_t);
+            void run_fir(fir_t fir);
             
             Client::Pattern<float32_t> coefs;
             Client::Pattern<float32_t> inputs;

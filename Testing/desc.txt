@@ -2331,6 +2331,7 @@ group Root {
 
                 Functions {
                  test_fir_decimate_f64:test_fir_decimate_f64
+                 test_fir_decimate_ct_f64:test_fir_decimate_ct_f64
                 }
              }
 
@@ -2355,6 +2356,8 @@ group Root {
                 Functions {
                  test_fir_decimate_f32:test_fir_decimate_f32
                  test_fir_interpolate_f32:test_fir_interpolate_f32
+                 test_fir_decimate_ct_f32:test_fir_decimate_ct_f32
+                 test_fir_interpolate_ct_f32:test_fir_interpolate_ct_f32
                 }
              }
 
@@ -2379,6 +2382,8 @@ group Root {
                 Functions {
                  test_fir_decimate_q31:test_fir_decimate_q31
                  test_fir_interpolate_q31:test_fir_interpolate_q31
+                 test_fir_decimate_ct_q31:test_fir_decimate_ct_q31
+                 test_fir_interpolate_ct_q31:test_fir_interpolate_ct_q31
                 }
              }
 
@@ -2403,6 +2408,8 @@ group Root {
                 Functions {
                  test_fir_decimate_q15:test_fir_decimate_q15
                  test_fir_interpolate_q15:test_fir_interpolate_q15
+                 test_fir_decimate_ct_q15:test_fir_decimate_ct_q15
+                 test_fir_interpolate_ct_q15:test_fir_interpolate_ct_q15
                 }
              }
            }
@@ -3301,6 +3308,7 @@ group Root {
 
                 Functions {
                   arm_fir_f64:test_fir_f64
+                  arm_fir_n(numTaps)_f64:test_fir_ct_f64
                 }
 
              }
@@ -3319,6 +3327,7 @@ group Root {
 
                 Functions {
                   arm_fir_f32:test_fir_f32
+                  arm_fir_n(numTaps)_f32:test_fir_ct_f32
                 }
 
              }
@@ -3337,6 +3346,7 @@ group Root {
 
                 Functions {
                   arm_fir_q31:test_fir_q31
+                  arm_fir_n(numTaps)_q31:test_fir_ct_q31
                 }
 
              }
@@ -3355,6 +3365,7 @@ group Root {
 
                 Functions {
                   arm_fir_q15:test_fir_q15
+                  arm_fir_n(numTaps)_q15:test_fir_ct_q15
                 }
 
              }
@@ -3373,6 +3384,7 @@ group Root {
 
                 Functions {
                   arm_fir_q7:test_fir_q7
+                  arm_fir_n(numTaps)_q7:test_fir_ct_q7
                 }
 
              }
