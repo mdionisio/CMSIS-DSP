@@ -459,10 +459,10 @@ ARM_DSP_ATTRIBUTE void arm_fir_decimate_f32(
       px2 += 4;
       px3 += 4;
      
-      acc0v = vmlaq_f32(acc0v, x0v, c0v);
-      acc1v = vmlaq_f32(acc1v, x1v, c0v);
-      acc2v = vmlaq_f32(acc2v, x2v, c0v);
-      acc3v = vmlaq_f32(acc3v, x3v, c0v);
+      acc0v = ARM_NEON_MLAQ_F32(acc0v, x0v, c0v);
+      acc1v = ARM_NEON_MLAQ_F32(acc1v, x1v, c0v);
+      acc2v = ARM_NEON_MLAQ_F32(acc2v, x2v, c0v);
+      acc3v = ARM_NEON_MLAQ_F32(acc3v, x3v, c0v);
 
       /* Decrement the loop counter */
       tapCnt--;
@@ -549,7 +549,7 @@ ARM_DSP_ATTRIBUTE void arm_fir_decimate_f32(
       x0v = vld1q_f32(px);
       px += 4;
 
-      sum0v = vmlaq_f32(sum0v, x0v, c0v);
+      sum0v = ARM_NEON_MLAQ_F32(sum0v, x0v, c0v);
       
       /* Decrement the loop counter */
       tapCnt--;

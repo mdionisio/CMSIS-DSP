@@ -537,8 +537,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
         c0 = *(ptr2);
 
         /* Perform the multiply-accumulate */
-        accV0 = vmlaq_n_f32(accV0,x0v,c0);
-        accV1 = vmlaq_n_f32(accV1,x1v,c0);
+        accV0 = ARM_NEON_MLAQ_N_F32(accV0,x0v,c0);
+        accV1 = ARM_NEON_MLAQ_N_F32(accV1,x1v,c0);
        
         /* Read the coefficients, inputs and perform multiply-accumulate */
         c1 = *(ptr2 + S->L);
@@ -546,8 +546,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
         xa = vextq_f32(x0v,x1v,1);
         xb = vextq_f32(x1v,x2v,1);
 
-        accV0 = vmlaq_n_f32(accV0,xa,c1);
-        accV1 = vmlaq_n_f32(accV1,xb,c1);
+        accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c1);
+        accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c1);
 
         /* Read the coefficients, inputs and perform multiply-accumulate */
         c2 = *(ptr2 + S->L * 2);
@@ -555,8 +555,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
         xa = vextq_f32(x0v,x1v,2);
         xb = vextq_f32(x1v,x2v,2);
         
-        accV0 = vmlaq_n_f32(accV0,xa,c2);
-        accV1 = vmlaq_n_f32(accV1,xb,c2);
+        accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c2);
+        accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c2);
 
         /* Read the coefficients, inputs and perform multiply-accumulate */
         c3 = *(ptr2 + S->L * 3);
@@ -564,8 +564,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
         xa = vextq_f32(x0v,x1v,3);
         xb = vextq_f32(x1v,x2v,3);
         
-        accV0 = vmlaq_n_f32(accV0,xa,c3);
-        accV1 = vmlaq_n_f32(accV1,xb,c3);
+        accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c3);
+        accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c3);
 
         /* Upsampling is done by stuffing L-1 zeros between each sample.
          * So instead of multiplying zeros with coefficients,
@@ -588,8 +588,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
       {
         case 3:
              c0 = *(ptr2);
-             accV0 = vmlaq_n_f32(accV0,x0v,c0);
-             accV1 = vmlaq_n_f32(accV1,x1v,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,x0v,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,x1v,c0);
              ptr2 += S->L;
 
              c0 = *(ptr2);
@@ -597,8 +597,8 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
              xa = vextq_f32(x0v,x1v,1);
              xb = vextq_f32(x1v,x2v,1);
 
-             accV0 = vmlaq_n_f32(accV0,xa,c0);
-             accV1 = vmlaq_n_f32(accV1,xb,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c0);
              ptr2 += S->L;
 
              c0 = *(ptr2);
@@ -606,16 +606,16 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
              xa = vextq_f32(x0v,x1v,2);
              xb = vextq_f32(x1v,x2v,2);
              
-             accV0 = vmlaq_n_f32(accV0,xa,c0);
-             accV1 = vmlaq_n_f32(accV1,xb,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c0);
              ptr2 += S->L;
 
         break;
 
         case 2:
              c0 = *(ptr2);
-             accV0 = vmlaq_n_f32(accV0,x0v,c0);
-             accV1 = vmlaq_n_f32(accV1,x1v,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,x0v,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,x1v,c0);
              ptr2 += S->L;
 
              c0 = *(ptr2);
@@ -623,16 +623,16 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
              xa = vextq_f32(x0v,x1v,1);
              xb = vextq_f32(x1v,x2v,1);
              
-             accV0 = vmlaq_n_f32(accV0,xa,c0);
-             accV1 = vmlaq_n_f32(accV1,xb,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,xa,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,xb,c0);
              ptr2 += S->L;
 
         break;
 
         case 1:
              c0 = *(ptr2);
-             accV0 = vmlaq_n_f32(accV0,x0v,c0);
-             accV1 = vmlaq_n_f32(accV1,x1v,c0);
+             accV0 = ARM_NEON_MLAQ_N_F32(accV0,x0v,c0);
+             accV1 = ARM_NEON_MLAQ_N_F32(accV1,x1v,c0);
              ptr2 += S->L;
 
         break;
@@ -733,7 +733,7 @@ ARM_DSP_ATTRIBUTE void arm_fir_interpolate_f32(
         /* Increment the coefficient pointer by interpolation factor times. */
         ptr2 += S->L;
 
-        sum0v = vmlaq_f32(sum0v,x0v,x1v);
+        sum0v = ARM_NEON_MLAQ_F32(sum0v,x0v,x1v);
        
         /* Decrement the loop counter */
         tapCnt--;

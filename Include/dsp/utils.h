@@ -59,6 +59,29 @@ extern "C"
   #define ARM_ROUND_UP(N, S) ((((N) + (S) - 1) / (S)) * (S))
 #endif
 
+#if defined(ARM_MATH_NEON)
+  /**
+   * @brief Neon multiply-accumulate a + b * c for float32x4_t.
+   *
+   * On AArch64 the fused vfmaq is used. The vmla intrinsics are not fused
+   * (ACLE) and gcc never turns them into an fmla, even with -ffast-math
+   * (gcc/config/aarch64/aarch64-neon-builtins-base.cc : "Use a PAREN_EXPR
+   * (equivalent to C's `__builtin_assoc_barrier`) to prevent floating-point
+   * add and mul being transformed to an FMA") : fmul + fadd are generated,
+   * twice the number of instructions in the FIR inner loops. With
+   * vmlaq_n_f32 gcc also replaces the vector load of the coefficients by
+   * scalar loads. On Armv7-A (no FMA on Cortex-A9, vfmaq_n_f32 is A64 only)
+   * vmla is kept.
+   */
+  #if defined(__aarch64__)
+    #define ARM_NEON_MLAQ_F32(a, b, c)    vfmaq_f32((a), (b), (c))
+    #define ARM_NEON_MLAQ_N_F32(a, b, c)  vfmaq_n_f32((a), (b), (c))
+  #else
+    #define ARM_NEON_MLAQ_F32(a, b, c)    vmlaq_f32((a), (b), (c))
+    #define ARM_NEON_MLAQ_N_F32(a, b, c)  vmlaq_n_f32((a), (b), (c))
+  #endif
+#endif
+
 
   /**
    * @brief Function to Calculates 1/in (reciprocal) value of Q31 Data type.
