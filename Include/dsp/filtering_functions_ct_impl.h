@@ -184,6 +184,37 @@ extern "C"
 #define ARM_CT_DATA_BYTES_f32       4
 #define ARM_CT_DATA_BYTES_f16       2
 
+/* Multiply-accumulate of the vector kernels : ACC += A * B.
+   gcc only contracts the vector expression into an FMA with
+   -ffp-contract=fast, which is not the default with an ISO C standard
+   (-std=c11, used to build CMSIS-DSP) unless -ffast-math is used : the
+   vector kernels are then built with fmul + fadd, twice the number of FP
+   instructions (same result as the vmla intrinsics, kept unfused on purpose
+   by gcc : gcc/config/aarch64/aarch64-neon-builtins-base.cc "Use a
+   PAREN_EXPR (equivalent to C's `__builtin_assoc_barrier`) to prevent
+   floating-point add and mul being transformed to an FMA").
+   On AArch64 the fused Neon vfmaq intrinsic is used with gcc.
+   clang contracts the expression (-ffp-contract=on) : unchanged. */
+#if defined(__GNUC__) && !defined(__clang__) && defined(__aarch64__) && defined(ARM_MATH_NEON) && (ARM_CT_VECTOR_BYTES == 16)
+  #define ARM_CT_VFMA_f64(ACC, A, B) \
+    ((ACC) = (ARM_CT_VEC) vfmaq_f64((float64x2_t) (ACC), (float64x2_t) (A), (float64x2_t) (B)))
+  #define ARM_CT_VFMA_f32(ACC, A, B) \
+    ((ACC) = (ARM_CT_VEC) vfmaq_f32((float32x4_t) (ACC), (float32x4_t) (A), (float32x4_t) (B)))
+  #if defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
+    #define ARM_CT_VFMA_f16(ACC, A, B) \
+      ((ACC) = (ARM_CT_VEC) vfmaq_f16((float16x8_t) (ACC), (float16x8_t) (A), (float16x8_t) (B)))
+  #endif
+#endif
+#if !defined(ARM_CT_VFMA_f64)
+  #define ARM_CT_VFMA_f64(ACC, A, B) ((ACC) += (A) * (B))
+#endif
+#if !defined(ARM_CT_VFMA_f32)
+  #define ARM_CT_VFMA_f32(ACC, A, B) ((ACC) += (A) * (B))
+#endif
+#if !defined(ARM_CT_VFMA_f16)
+  #define ARM_CT_VFMA_f16(ACC, A, B) ((ACC) += (A) * (B))
+#endif
+
 /* Algorithm of the vector FIR :
    - 1 : the delayed samples are built from aligned windows with
          permutations (vext). Best when the unaligned vector loads are
@@ -490,6 +521,7 @@ typedef ARM_CT_DT ARM_CT_FN(arm_ct_vec_mem_)
 #define ARM_CT_VLD(P)               ((ARM_CT_VEC) *(const ARM_CT_VEC_MEM *) (P))
 #define ARM_CT_VST(P, V)            (*(ARM_CT_VEC_MEM *) (P) = (ARM_CT_VEC_MEM) (V))
 #define ARM_CT_VLEN                 (ARM_CT_VECTOR_BYTES / ARM_CT_CAT2(ARM_CT_DATA_BYTES_, ARM_CT_TEMPLATE_T))
+#define ARM_CT_VFMA(ACC, A, B)      ARM_CT_CAT2(ARM_CT_VFMA_, ARM_CT_TEMPLATE_T)(ACC, A, B)
 
 /**
   @brief         Vector with all the elements set to zero.
@@ -630,7 +662,7 @@ __STATIC_FORCEINLINE void ARM_CT_FN(arm_ct_fir_vec_group_)(
     ARM_CT_UNROLL
     for (k = 0U; k < nbAcc; k++)
     {
-      acc[k] += ARM_CT_FN(arm_ct_vext_)(w[k], w[k + 1U], p) * ARM_CT_FN(arm_ct_vdup_)(c[p]);
+      ARM_CT_VFMA(acc[k], ARM_CT_FN(arm_ct_vext_)(w[k], w[k + 1U], p), ARM_CT_FN(arm_ct_vdup_)(c[p]));
     }
   }
 }
@@ -705,7 +737,7 @@ __STATIC_FORCEINLINE void ARM_CT_FN(arm_ct_fir_vec_block_)(
     ARM_CT_UNROLL
     for (k = 0U; k < nbAcc; k++)
     {
-      acc[k] += ARM_CT_VLD(px + t + k * ARM_CT_VL) * ARM_CT_FN(arm_ct_vdup_)(c);
+      ARM_CT_VFMA(acc[k], ARM_CT_VLD(px + t + k * ARM_CT_VL), ARM_CT_FN(arm_ct_vdup_)(c));
     }
   }
 
@@ -909,7 +941,7 @@ __STATIC_FORCEINLINE void ARM_CT_FN(arm_fir_decimate_ct_kernel_)(
         ARM_CT_UNROLL
         for (k = 0U; k < K; k++)
         {
-          accv[k] += ARM_CT_VLD(px + k * M + t) * c;
+          ARM_CT_VFMA(accv[k], ARM_CT_VLD(px + k * M + t), c);
         }
       }
 
@@ -1091,6 +1123,7 @@ __STATIC_FORCEINLINE void ARM_CT_FN(arm_fir_interpolate_ct_kernel_)(
 #undef ARM_CT_VLD
 #undef ARM_CT_VST
 #undef ARM_CT_VLEN
+#undef ARM_CT_VFMA
 #endif
 
 #undef ARM_CT_DT
